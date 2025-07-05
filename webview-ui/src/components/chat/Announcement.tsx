@@ -1,7 +1,6 @@
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { CSSProperties, memo } from "react"
+import { CSSProperties, memo, useState } from "react"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
-import { Accordion, AccordionItem } from "@heroui/react"
 
 interface AnnouncementProps {
 	version: string
@@ -33,6 +32,7 @@ const linkStyle: CSSProperties = { display: "inline" }
 You must update the latestAnnouncementId in ClineProvider for new announcements to show to users. This new id will be compared with what's in state for the 'last announcement shown', and if it's different then the announcement will render. As soon as an announcement is shown, the id will be updated in state. This ensures that announcements are not shown more than once, even if the user doesn't close it themselves.
 */
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
+	const [isExpanded, setIsExpanded] = useState(false)
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
 	return (
 		<div style={containerStyle}>
@@ -63,17 +63,15 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					models
 				</li>
 			</ul>
-			<Accordion isCompact className="pl-0">
-				<AccordionItem
-					key="1"
-					aria-label="Previous Updates"
-					title="Previous Updates:"
-					classNames={{
-						trigger: "bg-transparent border-0 pl-0 pb-0 w-fit",
-						title: "font-bold text-[var(--vscode-foreground)]",
-						indicator:
-							"text-[var(--vscode-foreground)] mb-0.5 -rotate-180 data-[open=true]:-rotate-90 rtl:rotate-0 rtl:data-[open=true]:-rotate-90",
-					}}>
+			<div className="pl-0">
+				<button
+					onClick={() => setIsExpanded(!isExpanded)}
+					className="bg-transparent border-0 pl-0 pb-0 w-fit font-bold text-[var(--vscode-foreground)] cursor-pointer"
+					aria-label="Previous Updates">
+					<span className={`mr-2 transform transition-transform ${isExpanded ? "-rotate-90" : "-rotate-180"}`}>▼</span>
+					Previous Updates:
+				</button>
+				{isExpanded && (
 					<ul style={ulStyle}>
 						<li>
 							<b>Claude 4 Models:</b> Now with support for Anthropic Claude Sonnet 4 and Claude Opus 4 in both
@@ -99,8 +97,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 							Vertex AI users.
 						</li>
 					</ul>
-				</AccordionItem>
-			</Accordion>
+				)}
+			</div>
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
 				Join us on{" "}

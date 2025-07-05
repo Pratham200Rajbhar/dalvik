@@ -1,5 +1,4 @@
 import React from "react"
-import { Tooltip } from "@heroui/react"
 
 interface HeroTooltipProps {
 	content: React.ReactNode
@@ -11,48 +10,18 @@ interface HeroTooltipProps {
 }
 
 /**
- * HeroTooltip component that wraps the HeroUI tooltip with styling
- * similar to TaskTimelineTooltip
+ * Simple tooltip replacement without HeroUI dependency
  */
-const HeroTooltip: React.FC<HeroTooltipProps> = ({
-	content,
-	children,
-	className,
-	delay = 0,
-	closeDelay = 500,
-	placement = "top",
-}) => {
-	// If content is a simple string, wrap it in the tailwind styled divs
-	const formattedContent =
-		typeof content === "string" ? (
-			<div
-				className={`bg-[var(--vscode-editor-background)] text-[var(--vscode-editor-foreground)] 
-      border border-[var(--vscode-widget-border)] rounded p-2 w-full shadow-md text-xs max-w-[250px] ${className}`}>
-				<div
-					className="whitespace-pre-wrap break-words max-h-[150px] overflow-y-auto text-[11px] 
-        font-[var(--vscode-editor-font-family)]  p-1 rounded">
+const HeroTooltip: React.FC<HeroTooltipProps> = ({ content, children, className }) => {
+	return (
+		<div className={`relative group ${className || ""}`} title={typeof content === "string" ? content : undefined}>
+			{children}
+			{typeof content !== "string" && (
+				<div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-gray-800 text-white rounded whitespace-nowrap z-50">
 					{content}
 				</div>
-			</div>
-		) : (
-			// If content is already a React node, assume it's pre-formatted
-			content
-		)
-
-	return (
-		<Tooltip
-			content={formattedContent}
-			delay={delay}
-			closeDelay={0} // Immediate close when cursor moves away
-			placement={placement}
-			isDisabled={false}
-			showArrow={false}
-			disableAnimation={true} // Disable animation for immediate appearance/disappearance
-			classNames={{
-				content: "hero-tooltip-content pointer-events-none", // Prevent hovering over tooltip
-			}}>
-			{children}
-		</Tooltip>
+			)}
+		</div>
 	)
 }
 

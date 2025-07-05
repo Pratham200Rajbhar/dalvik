@@ -1,6 +1,5 @@
 import React from "react"
 import { ClineMessage } from "@shared/ExtensionMessage"
-import { Tooltip } from "@heroui/react"
 import { getColor } from "./util"
 
 interface TaskTimelineTooltipProps {
@@ -152,8 +151,9 @@ const TaskTimelineTooltip = ({ message, children }: TaskTimelineTooltipProps) =>
 	}
 
 	return (
-		<Tooltip
-			content={
+		<div className="relative group">
+			{children}
+			<div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800 text-white p-2 rounded text-xs whitespace-nowrap z-50 max-w-sm">
 				<div className="flex flex-col">
 					<div className="flex flex-wrap items-center font-bold mb-1">
 						<div className="mr-4 mb-0.5">
@@ -161,13 +161,13 @@ const TaskTimelineTooltip = ({ message, children }: TaskTimelineTooltipProps) =>
 								style={{
 									width: "10px",
 									height: "10px",
-									minWidth: "10px", // Ensure fixed width
-									minHeight: "10px", // Ensure fixed height
+									minWidth: "10px",
+									minHeight: "10px",
 									borderRadius: "50%",
 									backgroundColor: getColor(message),
 									marginRight: "8px",
 									display: "inline-block",
-									flexShrink: 0, // Prevent shrinking when space is limited
+									flexShrink: 0,
 								}}
 							/>
 							{getMessageDescription(message)}
@@ -196,17 +196,8 @@ const TaskTimelineTooltip = ({ message, children }: TaskTimelineTooltipProps) =>
 						</div>
 					)}
 				</div>
-			}
-			classNames={{
-				base: "bg-[var(--vscode-editor-background)] text-[var(--vscode-editor-foreground)] border-[var(--vscode-widget-border)] py-1 rounded-[3px] max-w-[calc(100dvw-2rem)] text-xs",
-			}}
-			shadow="sm"
-			placement="bottom"
-			disableAnimation
-			closeDelay={100}
-			isKeyboardDismissDisabled={true}>
-			{children}
-		</Tooltip>
+			</div>
+		</div>
 	)
 }
 

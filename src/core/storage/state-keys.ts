@@ -1,6 +1,6 @@
 export type SecretKey =
 	| "apiKey"
-	| "clineApiKey"
+	| "dalvikApiKey"
 	| "openRouterApiKey"
 	| "awsAccessKey"
 	| "awsSecretKey"
@@ -49,7 +49,7 @@ export type GlobalStateKey =
 	| "azureApiVersion"
 	| "openRouterProviderSorting"
 	| "autoApprovalSettings"
-	| "globalClineRulesToggles"
+	| "globalDalvikRulesToggles"
 	| "globalWorkflowToggles"
 	| "browserSettings"
 	| "userInfo"
@@ -112,4 +112,8 @@ export type GlobalStateKey =
 	| "previousModeAwsBedrockCustomModelBaseId"
 	| "previousModeSapAiCoreModelId"
 
-export type LocalStateKey = "localClineRulesToggles" | "localCursorRulesToggles" | "localWindsurfRulesToggles" | "workflowToggles"
+export type LocalStateKey =
+	| "localDalvikRulesToggles"
+	| "localCursorRulesToggles"
+	| "localWindsurfRulesToggles"
+	| "workflowToggles"

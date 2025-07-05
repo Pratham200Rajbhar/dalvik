@@ -262,18 +262,18 @@ export function createTestServer(webviewProvider?: WebviewProvider): http.Server
 						// Update API configuration with API key
 						const updatedConfig = {
 							...apiConfiguration,
-							apiProvider: "cline" as ApiProvider,
-							clineApiKey: apiKey,
+							apiProvider: "dalvik" as ApiProvider,
+							dalvikApiKey: apiKey,
 						}
 
 						// Store the API key securely
-						await storeSecret(visibleWebview.controller.context, "clineApiKey", apiKey)
+						await storeSecret(visibleWebview.controller.context, "dalvikApiKey", apiKey)
 
 						// Update the API configuration
 						await updateApiConfiguration(visibleWebview.controller.context, updatedConfig)
 
-						// Update global state to use cline provider
-						await updateGlobalState(visibleWebview.controller.context, "apiProvider", "cline" as ApiProvider)
+						// Update global state to use dalvik provider
+						await updateGlobalState(visibleWebview.controller.context, "apiProvider", "dalvik" as ApiProvider)
 
 						// Post state to webview to reflect changes
 						await visibleWebview.controller.postStateToWebview()

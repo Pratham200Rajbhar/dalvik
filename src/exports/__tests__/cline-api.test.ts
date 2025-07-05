@@ -3,11 +3,11 @@ import * as sinon from "sinon"
 import * as should from "should"
 import * as vscode from "vscode"
 import * as stateModule from "@core/storage/state"
-import { createClineAPI } from "../index"
-import type { ClineAPI } from "../cline"
+import { createDalvikAPI } from "../index"
+import type { DalvikAPI } from "../dalvik"
 
-describe("ClineAPI Core Functionality", () => {
-	let api: ClineAPI
+describe("DalvikAPI Core Functionality", () => {
+	let api: DalvikAPI
 	let mockController: any
 	let mockOutputChannel: sinon.SinonStubbedInstance<vscode.OutputChannel>
 	let sandbox: sinon.SinonSandbox
@@ -58,7 +58,7 @@ describe("ClineAPI Core Functionality", () => {
 		}
 
 		// Create API instance
-		api = createClineAPI(mockOutputChannel as any, mockController)
+		api = createDalvikAPI(mockOutputChannel as any, mockController)
 	})
 
 	afterEach(() => {

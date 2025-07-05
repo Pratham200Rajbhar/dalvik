@@ -1,38 +1,15 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { useFirebaseAuth } from "@/context/FirebaseAuthContext"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { AccountServiceClient } from "@/services/grpc-client"
-import { EmptyRequest } from "@shared/proto/common"
+// Simplified offline account info - no Firebase or cloud services needed
 
 export const ClineAccountInfoCard = () => {
-	const { user: firebaseUser, handleSignOut } = useFirebaseAuth()
-	const { userInfo, apiConfiguration, navigateToAccount } = useExtensionState()
-
-	let user = apiConfiguration?.clineApiKey ? firebaseUser || userInfo : undefined
-
-	const handleLogin = () => {
-		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
-			console.error("Failed to get login URL:", err),
-		)
-	}
-
-	const handleShowAccount = () => {
-		navigateToAccount()
-	}
-
 	return (
-		<div className="max-w-[600px]">
-			{user ? (
-				<VSCodeButton appearance="secondary" onClick={handleShowAccount}>
-					View Billing & Usage
-				</VSCodeButton>
-			) : (
-				<div>
-					<VSCodeButton onClick={handleLogin} className="mt-0">
-						Sign Up with Cline
-					</VSCodeButton>
-				</div>
-			)}
+		<div className="p-4 bg-gray-100 rounded-lg dark:bg-gray-800 max-w-[600px]">
+			<h3 className="text-lg font-semibold mb-2">Dalvik Agent - Offline Mode</h3>
+			<p className="text-sm text-gray-600 dark:text-gray-400">
+				You are running Dalvik in fully offline mode. No account or cloud services are required.
+			</p>
+			<div className="mt-3 text-xs text-gray-500 dark:text-gray-500">
+				All processing happens locally on your machine using Ollama.
+			</div>
 		</div>
 	)
 }

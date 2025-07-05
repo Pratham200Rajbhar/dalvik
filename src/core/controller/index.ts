@@ -11,7 +11,7 @@ import { McpHub } from "@services/mcp/McpHub"
 import { ApiProvider, ModelInfo } from "@shared/api"
 import { ChatContent } from "@shared/ChatContent"
 import { ChatSettings, StoredChatSettings } from "@shared/ChatSettings"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles } from "@shared/cline-rules"
 import { ExtensionMessage, ExtensionState, Platform } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
 import { McpMarketplaceCatalog } from "@shared/mcp"
@@ -80,7 +80,7 @@ export class Controller {
 		)
 		this.accountService = new ClineAccountService(async () => {
 			const { apiConfiguration } = await this.getStateToPostToWebview()
-			return apiConfiguration?.clineApiKey
+			return apiConfiguration?.dalvikApiKey
 		})
 
 		// Clean up legacy checkpoints
@@ -111,7 +111,7 @@ export class Controller {
 	// Auth methods
 	async handleSignOut() {
 		try {
-			await storeSecret(this.context, "clineApiKey", undefined)
+			await storeSecret(this.context, "dalvikApiKey", undefined)
 			await updateGlobalState(this.context, "userInfo", undefined)
 			await updateGlobalState(this.context, "apiProvider", "openrouter")
 			await this.postStateToWebview()
@@ -292,7 +292,7 @@ export class Controller {
 					)
 					break
 				case "openrouter":
-				case "cline":
+				case "dalvik":
 					await updateGlobalState(this.context, "previousModeModelId", apiConfiguration.openRouterModelId)
 					await updateGlobalState(this.context, "previousModeModelInfo", apiConfiguration.openRouterModelInfo)
 					break
@@ -356,7 +356,7 @@ export class Controller {
 						await updateGlobalState(this.context, "awsBedrockCustomModelBaseId", newAwsBedrockCustomModelBaseId)
 						break
 					case "openrouter":
-					case "cline":
+					case "dalvik":
 						await updateGlobalState(this.context, "openRouterModelId", newModelId)
 						await updateGlobalState(this.context, "openRouterModelInfo", newModelInfo)
 						break
@@ -464,19 +464,19 @@ export class Controller {
 	async handleAuthCallback(customToken: string, apiKey: string) {
 		try {
 			// Store API key for API calls
-			await storeSecret(this.context, "clineApiKey", apiKey)
+			await storeSecret(this.context, "dalvikApiKey", apiKey)
 
 			// Send custom token to webview for Firebase auth
 			await sendAuthCallbackEvent(customToken)
 
-			const clineProvider: ApiProvider = "cline"
-			await updateGlobalState(this.context, "apiProvider", clineProvider)
+			const dalvikProvider: ApiProvider = "dalvik"
+			await updateGlobalState(this.context, "apiProvider", dalvikProvider)
 
 			// Update API configuration with the new provider and API key
 			const { apiConfiguration } = await getAllExtensionState(this.context)
 			const updatedConfig = {
 				...apiConfiguration,
-				apiProvider: clineProvider,
+				apiProvider: dalvikProvider,
 				clineApiKey: apiKey,
 			}
 
@@ -669,10 +669,10 @@ export class Controller {
 		return "@/" + relativePath
 	}
 
-	// 'Add to Cline' context menu in editor and code action
+	// 'Add to Dalvik' context menu in editor and code action
 	async addSelectedCodeToChat(code: string, filePath: string, languageId: string, diagnostics?: vscode.Diagnostic[]) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand("dalvik.SidebarProvider.focus")
 		await setTimeoutPromise(100)
 
 		// Post message to webview with the selected code
@@ -689,10 +689,10 @@ export class Controller {
 		console.log("addSelectedCodeToChat", code, filePath, languageId)
 	}
 
-	// 'Add to Cline' context menu in Terminal
+	// 'Add to Dalvik' context menu in Terminal
 	async addSelectedTerminalOutputToChat(output: string, terminalName: string) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand("dalvik.SidebarProvider.focus")
 		await setTimeoutPromise(100)
 
 		// Post message to webview with the selected terminal output
@@ -707,10 +707,10 @@ export class Controller {
 		console.log("addSelectedTerminalOutputToChat", output, terminalName)
 	}
 
-	// 'Fix with Cline' in code actions
+	// 'Fix with Dalvik' in code actions
 	async fixWithCline(code: string, filePath: string, languageId: string, diagnostics: vscode.Diagnostic[]) {
 		// Ensure the sidebar view is visible
-		await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+		await vscode.commands.executeCommand("dalvik.SidebarProvider.focus")
 		await setTimeoutPromise(100)
 
 		const fileMention = await this.getFileMentionFromPath(filePath)
@@ -823,7 +823,7 @@ export class Controller {
 			telemetrySetting,
 			planActSeparateModelsSetting,
 			enableCheckpointsSetting,
-			globalClineRulesToggles,
+			globalDalvikRulesToggles,
 			globalWorkflowToggles,
 			shellIntegrationTimeout,
 			terminalReuseEnabled,
@@ -840,16 +840,14 @@ export class Controller {
 			mode: this.mode, // Use in-memory mode (override any stored mode)
 		}
 
-		const localClineRulesToggles =
-			((await getWorkspaceState(this.context, "localClineRulesToggles")) as ClineRulesToggles) || {}
-
+		const localDalvikRulesToggles =
+			((await getWorkspaceState(this.context, "localDalvikRulesToggles")) as DalvikRulesToggles) || {}
 		const localWindsurfRulesToggles =
-			((await getWorkspaceState(this.context, "localWindsurfRulesToggles")) as ClineRulesToggles) || {}
-
+			((await getWorkspaceState(this.context, "localWindsurfRulesToggles")) as DalvikRulesToggles) || {}
 		const localCursorRulesToggles =
-			((await getWorkspaceState(this.context, "localCursorRulesToggles")) as ClineRulesToggles) || {}
+			((await getWorkspaceState(this.context, "localCursorRulesToggles")) as DalvikRulesToggles) || {}
 
-		const localWorkflowToggles = ((await getWorkspaceState(this.context, "workflowToggles")) as ClineRulesToggles) || {}
+		const localWorkflowToggles = ((await getWorkspaceState(this.context, "workflowToggles")) as DalvikRulesToggles) || {}
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
@@ -874,8 +872,8 @@ export class Controller {
 			planActSeparateModelsSetting,
 			enableCheckpointsSetting: enableCheckpointsSetting ?? true,
 			distinctId: telemetryService.distinctId,
-			globalClineRulesToggles: globalClineRulesToggles || {},
-			localClineRulesToggles: localClineRulesToggles || {},
+			globalDalvikRulesToggles: globalDalvikRulesToggles || {},
+			localDalvikRulesToggles: localDalvikRulesToggles || {},
 			localWindsurfRulesToggles: localWindsurfRulesToggles || {},
 			localCursorRulesToggles: localCursorRulesToggles || {},
 			localWorkflowToggles: localWorkflowToggles || {},

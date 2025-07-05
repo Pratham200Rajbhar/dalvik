@@ -1,5 +1,5 @@
 import { newTaskToolResponse, condenseToolResponse, newRuleToolResponse, reportBugToolResponse } from "../prompts/commands"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles } from "@shared/cline-rules"
 import fs from "fs/promises"
 
 /**
@@ -8,8 +8,8 @@ import fs from "fs/promises"
  */
 export async function parseSlashCommands(
 	text: string,
-	localWorkflowToggles: ClineRulesToggles,
-	globalWorkflowToggles: ClineRulesToggles,
+	localWorkflowToggles: DalvikRulesToggles,
+	globalWorkflowToggles: DalvikRulesToggles,
 ): Promise<{ processedText: string; needsClinerulesFileCheck: boolean }> {
 	const SUPPORTED_DEFAULT_COMMANDS = ["newtask", "smol", "compact", "newrule", "reportbug"]
 

@@ -1,1 +1,1 @@
-export type ClineRulesToggles = Record<string, boolean> // filepath -> enabled/disabled
+export type DalvikRulesToggles = Record<string, boolean> // filepath -> enabled/disabled

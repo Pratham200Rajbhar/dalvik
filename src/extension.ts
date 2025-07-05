@@ -4,7 +4,7 @@ import { setTimeout as setTimeoutPromise } from "node:timers/promises"
 import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
 import { Logger } from "./services/logging/Logger"
-import { createClineAPI } from "./exports"
+import { createDalvikAPI } from "./exports"
 import "./utils/path" // necessary to have access to String.prototype.toPosix
 import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
 import assert from "node:assert"
@@ -51,16 +51,16 @@ let outputChannel: vscode.OutputChannel
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-	outputChannel = vscode.window.createOutputChannel("Cline")
+	outputChannel = vscode.window.createOutputChannel("Dalvik")
 	context.subscriptions.push(outputChannel)
 
 	ErrorService.initialize()
 	Logger.initialize(outputChannel)
-	Logger.log("Cline extension activated")
+	Logger.log("Dalvik extension activated")
 
 	maybeSetupHostProviders(context)
 
-	// Migrate custom instructions to global Cline rules (one-time cleanup)
+	// Migrate custom instructions to global Dalvik rules (one-time cleanup)
 	await migrateCustomInstructionsToGlobalRules(context)
 
 	// Migrate mode from workspace storage to controller state (one-time cleanup)
@@ -77,14 +77,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Version checking for autoupdate notification
 	const currentVersion = context.extension.packageJSON.version
-	const previousVersion = context.globalState.get<string>("clineVersion")
+	const previousVersion = context.globalState.get<string>("dalvikVersion")
 	const sidebarWebview = hostProviders.createWebviewProvider(WebviewProviderType.SIDEBAR)
 
 	const testModeWatchers = await initializeTestMode(sidebarWebview)
 	// Initialize test mode and add disposables to context
 	context.subscriptions.push(...testModeWatchers)
 
-	vscode.commands.executeCommand("setContext", "cline.isDevMode", IS_DEV && IS_DEV === "true")
+	vscode.commands.executeCommand("setContext", "dalvik.isDevMode", IS_DEV && IS_DEV === "true")
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(WebviewProvider.sideBarId, sidebarWebview, {
@@ -95,20 +95,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Perform post-update actions if necessary
 	try {
 		if (!previousVersion || currentVersion !== previousVersion) {
-			Logger.log(`Cline version changed: ${previousVersion} -> ${currentVersion}. First run or update detected.`)
-			const lastShownPopupNotificationVersion = context.globalState.get<string>("clineLastPopupNotificationVersion")
+			Logger.log(`Dalvik version changed: ${previousVersion} -> ${currentVersion}. First run or update detected.`)
+			const lastShownPopupNotificationVersion = context.globalState.get<string>("dalvikLastPopupNotificationVersion")
 
 			if (currentVersion !== lastShownPopupNotificationVersion && previousVersion) {
 				// Show VS Code popup notification as this version hasn't been notified yet without doing it for fresh installs
-				const message = `Cline has been updated to v${currentVersion}`
-				await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+				const message = `Dalvik has been updated to v${currentVersion}`
+				await vscode.commands.executeCommand("dalvik.SidebarProvider.focus")
 				await new Promise((resolve) => setTimeout(resolve, 200))
 				vscode.window.showInformationMessage(message)
 				// Record that we've shown the popup for this version.
-				await context.globalState.update("clineLastPopupNotificationVersion", currentVersion)
+				await context.globalState.update("dalvikLastPopupNotificationVersion", currentVersion)
 			}
 			// Always update the main version tracker for the next launch.
-			await context.globalState.update("clineVersion", currentVersion)
+			await context.globalState.update("dalvikVersion", currentVersion)
 		}
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
@@ -126,7 +126,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	telemetryService.captureExtensionActivated(installId)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.plusButtonClicked", async (webview: any) => {
+		vscode.commands.registerCommand("dalvik.plusButtonClicked", async (webview: any) => {
 			console.log("[DEBUG] plusButtonClicked", webview)
 			// Pass the webview type to the event sender
 			const isSidebar = !webview
@@ -153,7 +153,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.mcpButtonClicked", (webview: any) => {
+		vscode.commands.registerCommand("dalvik.mcpButtonClicked", (webview: any) => {
 			console.log("[DEBUG] mcpButtonClicked", webview)
 
 			const activeInstance = WebviewProvider.getActiveInstance()
@@ -178,8 +178,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	const openClineInNewTab = async () => {
-		Logger.log("Opening Cline in new tab")
+	const openDalvikInNewTab = async () => {
+		Logger.log("Opening Dalvik in new tab")
 		// (this example uses webviewProvider activation event which is necessary to deserialize cached webview, but since we use retainContextWhenHidden, we don't need to use that event)
 		// https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
 		const tabWebview = hostProviders.createWebviewProvider(WebviewProviderType.TAB)
@@ -193,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 		const targetCol = hasVisibleEditors ? Math.max(lastCol + 1, 1) : vscode.ViewColumn.Two
 
-		const panel = vscode.window.createWebviewPanel(WebviewProvider.tabPanelId, "Cline", targetCol, {
+		const panel = vscode.window.createWebviewPanel(WebviewProvider.tabPanelId, "Dalvik", targetCol, {
 			enableScripts: true,
 			retainContextWhenHidden: true,
 			localResourceRoots: [context.extensionUri],
@@ -211,11 +211,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		await vscode.commands.executeCommand("workbench.action.lockEditorGroup")
 	}
 
-	context.subscriptions.push(vscode.commands.registerCommand("cline.popoutButtonClicked", openClineInNewTab))
-	context.subscriptions.push(vscode.commands.registerCommand("cline.openInNewTab", openClineInNewTab))
+	context.subscriptions.push(vscode.commands.registerCommand("dalvik.popoutButtonClicked", openDalvikInNewTab))
+	context.subscriptions.push(vscode.commands.registerCommand("dalvik.openInNewTab", openDalvikInNewTab))
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.settingsButtonClicked", (webview: any) => {
+		vscode.commands.registerCommand("dalvik.settingsButtonClicked", (webview: any) => {
 			const isSidebar = !webview
 			const webviewType = isSidebar ? WebviewProviderTypeEnum.SIDEBAR : WebviewProviderTypeEnum.TAB
 
@@ -224,7 +224,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.historyButtonClicked", async (webview: any) => {
+		vscode.commands.registerCommand("dalvik.historyButtonClicked", async (webview: any) => {
 			console.log("[DEBUG] historyButtonClicked", webview)
 			// Pass the webview type to the event sender
 			const isSidebar = !webview
@@ -236,7 +236,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.accountButtonClicked", (webview: any) => {
+		vscode.commands.registerCommand("dalvik.accountButtonClicked", (webview: any) => {
 			console.log("[DEBUG] accountButtonClicked", webview)
 
 			const isSidebar = !webview
@@ -327,7 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			.then((module) => {
 				const devTaskCommands = module.registerTaskCommands(context, sidebarWebview.controller)
 				context.subscriptions.push(...devTaskCommands)
-				Logger.log("Cline dev task commands registered")
+				Logger.log("Dalvik dev task commands registered")
 			})
 			.catch((error) => {
 				Logger.log("Failed to register dev task commands: " + error)
@@ -335,8 +335,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.addToChat", async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
-			await vscode.commands.executeCommand("cline.focusChatInput") // Ensure Cline is visible and input focused
+		vscode.commands.registerCommand("dalvik.addToChat", async (range?: vscode.Range, diagnostics?: vscode.Diagnostic[]) => {
+			await vscode.commands.executeCommand("dalvik.focusChatInput") // Ensure Dalvik is visible and input focused
 			await pWaitFor(() => !!WebviewProvider.getVisibleInstance())
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
@@ -368,7 +368,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.addTerminalOutputToChat", async () => {
+		vscode.commands.registerCommand("dalvik.addTerminalOutputToChat", async () => {
 			const terminal = vscode.window.activeTerminal
 			if (!terminal) {
 				return
@@ -465,40 +465,40 @@ export async function activate(context: vscode.ExtensionContext) {
 						)
 					}
 
-					// Add to Cline (Always available)
-					const addAction = new vscode.CodeAction("Add to Cline", vscode.CodeActionKind.QuickFix)
+					// Add to Dalvik (Always available)
+					const addAction = new vscode.CodeAction("Add to Dalvik", vscode.CodeActionKind.QuickFix)
 					addAction.command = {
-						command: "cline.addToChat",
-						title: "Add to Cline",
+						command: "dalvik.addToChat",
+						title: "Add to Dalvik",
 						arguments: [expandedRange, context.diagnostics],
 					}
 					actions.push(addAction)
 
-					// Explain with Cline (Always available)
-					const explainAction = new vscode.CodeAction("Explain with Cline", vscode.CodeActionKind.RefactorExtract) // Using a refactor kind
+					// Explain with Dalvik (Always available)
+					const explainAction = new vscode.CodeAction("Explain with Dalvik", vscode.CodeActionKind.RefactorExtract) // Using a refactor kind
 					explainAction.command = {
-						command: "cline.explainCode",
-						title: "Explain with Cline",
+						command: "dalvik.explainCode",
+						title: "Explain with Dalvik",
 						arguments: [expandedRange],
 					}
 					actions.push(explainAction)
 
-					// Improve with Cline (Always available)
-					const improveAction = new vscode.CodeAction("Improve with Cline", vscode.CodeActionKind.RefactorRewrite) // Using a refactor kind
+					// Improve with Dalvik (Always available)
+					const improveAction = new vscode.CodeAction("Improve with Dalvik", vscode.CodeActionKind.RefactorRewrite) // Using a refactor kind
 					improveAction.command = {
-						command: "cline.improveCode",
-						title: "Improve with Cline",
+						command: "dalvik.improveCode",
+						title: "Improve with Dalvik",
 						arguments: [expandedRange],
 					}
 					actions.push(improveAction)
 
-					// Fix with Cline (Only if diagnostics exist)
+					// Fix with Dalvik (Only if diagnostics exist)
 					if (context.diagnostics.length > 0) {
-						const fixAction = new vscode.CodeAction("Fix with Cline", vscode.CodeActionKind.QuickFix)
+						const fixAction = new vscode.CodeAction("Fix with Dalvik", vscode.CodeActionKind.QuickFix)
 						fixAction.isPreferred = true
 						fixAction.command = {
-							command: "cline.fixWithCline",
-							title: "Fix with Cline",
+							command: "dalvik.fixWithDalvik",
+							title: "Fix with Dalvik",
 							arguments: [expandedRange, context.diagnostics],
 						}
 						actions.push(fixAction)
@@ -518,9 +518,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.fixWithCline", async (range: vscode.Range, diagnostics: vscode.Diagnostic[]) => {
+		vscode.commands.registerCommand("dalvik.fixWithDalvik", async (range: vscode.Range, diagnostics: vscode.Diagnostic[]) => {
 			// Add this line to focus the chat input first
-			await vscode.commands.executeCommand("cline.focusChatInput")
+			await vscode.commands.executeCommand("dalvik.focusChatInput")
 			// Wait for a webview instance to become visible after focusing
 			await pWaitFor(() => !!WebviewProvider.getVisibleInstance())
 			const editor = vscode.window.activeTextEditor
@@ -540,8 +540,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.explainCode", async (range: vscode.Range) => {
-			await vscode.commands.executeCommand("cline.focusChatInput") // Ensure Cline is visible and input focused
+		vscode.commands.registerCommand("dalvik.explainCode", async (range: vscode.Range) => {
+			await vscode.commands.executeCommand("dalvik.focusChatInput") // Ensure Cline is visible and input focused
 			await pWaitFor(() => !!WebviewProvider.getVisibleInstance())
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
@@ -562,8 +562,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.improveCode", async (range: vscode.Range) => {
-			await vscode.commands.executeCommand("cline.focusChatInput") // Ensure Cline is visible and input focused
+		vscode.commands.registerCommand("dalvik.improveCode", async (range: vscode.Range) => {
+			await vscode.commands.executeCommand("dalvik.focusChatInput") // Ensure Cline is visible and input focused
 			await pWaitFor(() => !!WebviewProvider.getVisibleInstance())
 			const editor = vscode.window.activeTextEditor
 			if (!editor) {
@@ -585,7 +585,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the focusChatInput command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.focusChatInput", async () => {
+		vscode.commands.registerCommand("dalvik.focusChatInput", async () => {
 			let activeWebviewProvider: WebviewProvider | undefined = WebviewProvider.getVisibleInstance()
 
 			// If a tab is visible and active, ensure it's fully revealed (might be redundant but safe)
@@ -594,7 +594,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				panelView.reveal(panelView.viewColumn)
 			} else if (!activeWebviewProvider) {
 				// No webview is currently visible, try to activate the sidebar
-				await vscode.commands.executeCommand("claude-dev.SidebarProvider.focus")
+				await vscode.commands.executeCommand("dalvik.SidebarProvider.focus")
 				await new Promise((resolve) => setTimeout(resolve, 200)) // Allow time for focus
 				activeWebviewProvider = WebviewProvider.getSidebarInstance()
 
@@ -614,7 +614,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				if (!activeWebviewProvider) {
 					// No existing Cline view found at all, open a new tab
-					await vscode.commands.executeCommand("cline.openInNewTab")
+					await vscode.commands.executeCommand("dalvik.openInNewTab")
 					// After openInNewTab, a new webview is created. We need to get this new instance.
 					// It might take a moment for it to register.
 					await pWaitFor(
@@ -646,7 +646,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the openWalkthrough command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.openWalkthrough", async () => {
+		vscode.commands.registerCommand("dalvik.openWalkthrough", async () => {
 			await vscode.commands.executeCommand("workbench.action.openWalkthrough", "saoudrizwan.claude-dev#ClineWalkthrough")
 			telemetryService.captureButtonClick("command_openWalkthrough", undefined, true)
 		}),
@@ -654,7 +654,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Register the generateGitCommitMessage command handler
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.generateGitCommitMessage", async () => {
+		vscode.commands.registerCommand("dalvik.generateGitCommitMessage", async () => {
 			// Get the controller from any instance, without activating the view
 			const controller = WebviewProvider.getAllInstances()[0]?.controller
 
@@ -672,7 +672,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	return createClineAPI(outputChannel, sidebarWebview.controller)
+	return createDalvikAPI(outputChannel, sidebarWebview.controller)
 }
 
 function maybeSetupHostProviders(context: ExtensionContext) {

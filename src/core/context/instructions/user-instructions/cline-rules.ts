@@ -3,12 +3,12 @@ import { ensureRulesDirectoryExists, GlobalFileNames } from "@core/storage/disk"
 import { fileExistsAtPath, isDirectory, readDirectory } from "@utils/fs"
 import { formatResponse } from "@core/prompts/responses"
 import fs from "fs/promises"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles } from "@shared/cline-rules"
 import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
 import * as vscode from "vscode"
 import { synchronizeRuleToggles, getRuleFilesTotalContent } from "@core/context/instructions/user-instructions/rule-helpers"
 
-export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: ClineRulesToggles) => {
+export const getGlobalClineRules = async (globalClineRulesFilePath: string, toggles: DalvikRulesToggles) => {
 	if (await fileExistsAtPath(globalClineRulesFilePath)) {
 		if (await isDirectory(globalClineRulesFilePath)) {
 			try {
@@ -33,7 +33,7 @@ export const getGlobalClineRules = async (globalClineRulesFilePath: string, togg
 	return undefined
 }
 
-export const getLocalClineRules = async (cwd: string, toggles: ClineRulesToggles) => {
+export const getLocalClineRules = async (cwd: string, toggles: DalvikRulesToggles) => {
 	const clineRulesFilePath = path.resolve(cwd, GlobalFileNames.clineRules)
 
 	let clineRulesFileInstructions: string | undefined
@@ -71,22 +71,22 @@ export async function refreshClineRulesToggles(
 	context: vscode.ExtensionContext,
 	workingDirectory: string,
 ): Promise<{
-	globalToggles: ClineRulesToggles
-	localToggles: ClineRulesToggles
+	globalToggles: DalvikRulesToggles
+	localToggles: DalvikRulesToggles
 }> {
 	// Global toggles
-	const globalClineRulesToggles = ((await getGlobalState(context, "globalClineRulesToggles")) as ClineRulesToggles) || {}
+	const globalDalvikRulesToggles = ((await getGlobalState(context, "globalDalvikRulesToggles")) as DalvikRulesToggles) || {}
 	const globalClineRulesFilePath = await ensureRulesDirectoryExists()
-	const updatedGlobalToggles = await synchronizeRuleToggles(globalClineRulesFilePath, globalClineRulesToggles)
-	await updateGlobalState(context, "globalClineRulesToggles", updatedGlobalToggles)
+	const updatedGlobalToggles = await synchronizeRuleToggles(globalClineRulesFilePath, globalDalvikRulesToggles)
+	await updateGlobalState(context, "globalDalvikRulesToggles", updatedGlobalToggles)
 
 	// Local toggles
-	const localClineRulesToggles = ((await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles) || {}
+	const localDalvikRulesToggles = ((await getWorkspaceState(context, "localDalvikRulesToggles")) as DalvikRulesToggles) || {}
 	const localClineRulesFilePath = path.resolve(workingDirectory, GlobalFileNames.clineRules)
-	const updatedLocalToggles = await synchronizeRuleToggles(localClineRulesFilePath, localClineRulesToggles, "", [
+	const updatedLocalToggles = await synchronizeRuleToggles(localClineRulesFilePath, localDalvikRulesToggles, "", [
 		[".clinerules", "workflows"],
 	])
-	await updateWorkspaceState(context, "localClineRulesToggles", updatedLocalToggles)
+	await updateWorkspaceState(context, "localDalvikRulesToggles", updatedLocalToggles)
 
 	return {
 		globalToggles: updatedGlobalToggles,

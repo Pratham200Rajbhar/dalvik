@@ -3,7 +3,7 @@ import { ensureRulesDirectoryExists, ensureWorkflowsDirectoryExists, GlobalFileN
 import { getGlobalState, getWorkspaceState, updateGlobalState, updateWorkspaceState } from "@core/storage/state"
 import * as path from "path"
 import fs from "fs/promises"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles } from "@shared/cline-rules"
 import * as vscode from "vscode"
 
 /**
@@ -38,10 +38,10 @@ export async function readDirectoryRecursive(
  */
 export async function synchronizeRuleToggles(
 	rulesDirectoryPath: string,
-	currentToggles: ClineRulesToggles,
+	currentToggles: DalvikRulesToggles,
 	allowedFileExtension: string = "",
 	excludedPaths: string[][] = [],
-): Promise<ClineRulesToggles> {
+): Promise<DalvikRulesToggles> {
 	// Create a copy of toggles to modify
 	const updatedToggles = { ...currentToggles }
 
@@ -105,14 +105,14 @@ export async function synchronizeRuleToggles(
 /**
  * Certain project rules have more than a single location where rules are allowed to be stored
  */
-export function combineRuleToggles(toggles1: ClineRulesToggles, toggles2: ClineRulesToggles): ClineRulesToggles {
+export function combineRuleToggles(toggles1: DalvikRulesToggles, toggles2: DalvikRulesToggles): DalvikRulesToggles {
 	return { ...toggles1, ...toggles2 }
 }
 
 /**
  * Read the content of rules files
  */
-export const getRuleFilesTotalContent = async (rulesFilePaths: string[], basePath: string, toggles: ClineRulesToggles) => {
+export const getRuleFilesTotalContent = async (rulesFilePaths: string[], basePath: string, toggles: DalvikRulesToggles) => {
 	const ruleFilesTotalContent = await Promise.all(
 		rulesFilePaths.map(async (filePath) => {
 			const ruleFilePath = path.resolve(basePath, filePath)
@@ -248,31 +248,31 @@ export async function deleteRuleFile(
 		// Update the appropriate toggles
 		if (isGlobal) {
 			if (type === "workflow") {
-				const toggles = ((await getGlobalState(context, "globalWorkflowToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getGlobalState(context, "globalWorkflowToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
 				await updateGlobalState(context, "globalWorkflowToggles", toggles)
 			} else {
-				const toggles = ((await getGlobalState(context, "globalClineRulesToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getGlobalState(context, "globalDalvikRulesToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
-				await updateGlobalState(context, "globalClineRulesToggles", toggles)
+				await updateGlobalState(context, "globalDalvikRulesToggles", toggles)
 			}
 		} else {
 			if (type === "workflow") {
-				const toggles = ((await getWorkspaceState(context, "workflowToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getWorkspaceState(context, "workflowToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
 				await updateWorkspaceState(context, "workflowToggles", toggles)
 			} else if (type === "cursor") {
-				const toggles = ((await getWorkspaceState(context, "localCursorRulesToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getWorkspaceState(context, "localCursorRulesToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
 				await updateWorkspaceState(context, "localCursorRulesToggles", toggles)
 			} else if (type === "windsurf") {
-				const toggles = ((await getWorkspaceState(context, "localWindsurfRulesToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getWorkspaceState(context, "localWindsurfRulesToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
 				await updateWorkspaceState(context, "localWindsurfRulesToggles", toggles)
 			} else {
-				const toggles = ((await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles) || {}
+				const toggles = ((await getWorkspaceState(context, "localDalvikRulesToggles")) as DalvikRulesToggles) || {}
 				delete toggles[rulePath]
-				await updateWorkspaceState(context, "localClineRulesToggles", toggles)
+				await updateWorkspaceState(context, "localDalvikRulesToggles", toggles)
 			}
 		}
 

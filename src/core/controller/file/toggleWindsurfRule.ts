@@ -2,7 +2,7 @@ import type { ToggleWindsurfRuleRequest } from "../../../shared/proto/file"
 import { ClineRulesToggles } from "../../../shared/proto/file"
 import type { Controller } from "../index"
 import { getWorkspaceState, updateWorkspaceState } from "../../../core/storage/state"
-import { ClineRulesToggles as AppClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles as AppDalvikRulesToggles } from "@shared/cline-rules"
 
 /**
  * Toggles a Windsurf rule (enable or disable)
@@ -22,7 +22,7 @@ export async function toggleWindsurfRule(controller: Controller, request: Toggle
 	}
 
 	// Update the toggles
-	const toggles = ((await getWorkspaceState(controller.context, "localWindsurfRulesToggles")) as AppClineRulesToggles) || {}
+	const toggles = ((await getWorkspaceState(controller.context, "localWindsurfRulesToggles")) as AppDalvikRulesToggles) || {}
 	toggles[rulePath] = enabled
 	await updateWorkspaceState(controller.context, "localWindsurfRulesToggles", toggles)
 

@@ -10,7 +10,7 @@ import { BrowserSettings } from "@shared/BrowserSettings"
 import { StoredChatSettings } from "@shared/ChatSettings"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { UserInfo } from "@shared/UserInfo"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles } from "@shared/cline-rules"
 import { migrateEnableCheckpointsSetting, migrateMcpMarketplaceEnableSetting } from "./state-migrations"
 /*
 	Storage
@@ -58,7 +58,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		welcomeViewCompleted,
 		apiKey,
 		openRouterApiKey,
-		clineApiKey,
+		dalvikApiKey,
 		awsAccessKey,
 		awsSecretKey,
 		awsSessionToken,
@@ -109,7 +109,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		nebiusApiKey,
 		planActSeparateModelsSettingRaw,
 		favoritedModelIds,
-		globalClineRulesToggles,
+		globalDalvikRulesToggles,
 		requestTimeoutMs,
 		shellIntegrationTimeout,
 		enableCheckpointsSettingRaw,
@@ -131,7 +131,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "welcomeViewCompleted") as Promise<boolean | undefined>,
 		getSecret(context, "apiKey") as Promise<string | undefined>,
 		getSecret(context, "openRouterApiKey") as Promise<string | undefined>,
-		getSecret(context, "clineApiKey") as Promise<string | undefined>,
+		getSecret(context, "dalvikApiKey") as Promise<string | undefined>,
 		getSecret(context, "awsAccessKey") as Promise<string | undefined>,
 		getSecret(context, "awsSecretKey") as Promise<string | undefined>,
 		getSecret(context, "awsSessionToken") as Promise<string | undefined>,
@@ -182,14 +182,14 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getSecret(context, "nebiusApiKey") as Promise<string | undefined>,
 		getGlobalState(context, "planActSeparateModelsSetting") as Promise<boolean | undefined>,
 		getGlobalState(context, "favoritedModelIds") as Promise<string[] | undefined>,
-		getGlobalState(context, "globalClineRulesToggles") as Promise<ClineRulesToggles | undefined>,
+		getGlobalState(context, "globalDalvikRulesToggles") as Promise<DalvikRulesToggles | undefined>,
 		getGlobalState(context, "requestTimeoutMs") as Promise<number | undefined>,
 		getGlobalState(context, "shellIntegrationTimeout") as Promise<number | undefined>,
 		getGlobalState(context, "enableCheckpointsSetting") as Promise<boolean | undefined>,
 		getGlobalState(context, "mcpMarketplaceEnabled") as Promise<boolean | undefined>,
 		getGlobalState(context, "mcpRichDisplayEnabled") as Promise<boolean | undefined>,
 		getGlobalState(context, "mcpResponsesCollapsed") as Promise<boolean | undefined>,
-		getGlobalState(context, "globalWorkflowToggles") as Promise<ClineRulesToggles | undefined>,
+		getGlobalState(context, "globalWorkflowToggles") as Promise<DalvikRulesToggles | undefined>,
 		getGlobalState(context, "terminalReuseEnabled") as Promise<boolean | undefined>,
 		getGlobalState(context, "terminalOutputLineLimit") as Promise<number | undefined>,
 		getGlobalState(context, "defaultTerminalProfile") as Promise<string | undefined>,
@@ -201,7 +201,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "claudeCodePath") as Promise<string | undefined>,
 	])
 
-	const localClineRulesToggles = (await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles
+	const localDalvikRulesToggles = (await getWorkspaceState(context, "localDalvikRulesToggles")) as DalvikRulesToggles
 
 	const [
 		chatSettings,
@@ -271,14 +271,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 	if (storedApiProvider) {
 		apiProvider = storedApiProvider
 	} else {
-		// Either new user or legacy user that doesn't have the apiProvider stored in state
-		// (If they're using OpenRouter or Bedrock, then apiProvider state will exist)
-		if (apiKey) {
-			apiProvider = "anthropic"
-		} else {
-			// New users should default to openrouter, since they've opted to use an API key instead of signing in
-			apiProvider = "openrouter"
-		}
+		// Default Dalvik to use Ollama for offline operation
+		apiProvider = "ollama"
 	}
 
 	const mcpMarketplaceEnabled = await migrateMcpMarketplaceEnableSetting(mcpMarketplaceEnabledRaw)
@@ -303,13 +297,17 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		await updateGlobalState(context, "planActSeparateModelsSetting", planActSeparateModelsSetting)
 	}
 
+	// Set defaults for Ollama when no configuration exists
+	const defaultOllamaBaseUrl = ollamaBaseUrl || "http://localhost:11434"
+	const defaultOllamaModelId = ollamaModelId || "llama3:latest"
+
 	return {
 		apiConfiguration: {
 			apiProvider,
 			apiModelId,
 			apiKey,
 			openRouterApiKey,
-			clineApiKey,
+			dalvikApiKey,
 			claudeCodePath,
 			awsAccessKey,
 			awsSecretKey,
@@ -329,8 +327,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 			openAiModelId,
 			openAiModelInfo,
 			openAiHeaders: openAiHeaders || {},
-			ollamaModelId,
-			ollamaBaseUrl,
+			ollamaModelId: defaultOllamaModelId,
+			ollamaBaseUrl: defaultOllamaBaseUrl,
 			ollamaApiOptionsCtxNum,
 			lmStudioModelId,
 			lmStudioBaseUrl,
@@ -384,8 +382,8 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		lastShownAnnouncementId,
 		taskHistory,
 		autoApprovalSettings: autoApprovalSettings || DEFAULT_AUTO_APPROVAL_SETTINGS, // default value can be 0 or empty string
-		globalClineRulesToggles: globalClineRulesToggles || {},
-		localClineRulesToggles: localClineRulesToggles || {},
+		globalDalvikRulesToggles: globalDalvikRulesToggles || {},
+		localDalvikRulesToggles: localDalvikRulesToggles || {},
 		browserSettings: { ...DEFAULT_BROWSER_SETTINGS, ...browserSettings }, // this will ensure that older versions of browserSettings (e.g. before remoteBrowserEnabled was added) are merged with the default values (false for remoteBrowserEnabled)
 		chatSettings: {
 			...DEFAULT_CHAT_SETTINGS, // Apply defaults first
@@ -473,7 +471,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		xaiApiKey,
 		thinkingBudgetTokens,
 		reasoningEffort,
-		clineApiKey,
+		dalvikApiKey,
 		sambanovaApiKey,
 		cerebrasApiKey,
 		nebiusApiKey,
@@ -547,7 +545,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	// Secret updates
 	await storeSecret(context, "apiKey", apiKey)
 	await storeSecret(context, "openRouterApiKey", openRouterApiKey)
-	await storeSecret(context, "clineApiKey", clineApiKey)
+	await storeSecret(context, "dalvikApiKey", dalvikApiKey)
 	await storeSecret(context, "awsAccessKey", awsAccessKey)
 	await storeSecret(context, "awsSecretKey", awsSecretKey)
 	await storeSecret(context, "awsSessionToken", awsSessionToken)
@@ -597,7 +595,7 @@ export async function resetGlobalState(context: vscode.ExtensionContext) {
 		"qwenApiKey",
 		"doubaoApiKey",
 		"mistralApiKey",
-		"clineApiKey",
+		"dalvikApiKey",
 		"liteLlmApiKey",
 		"fireworksApiKey",
 		"asksageApiKey",

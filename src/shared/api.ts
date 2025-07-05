@@ -18,7 +18,7 @@ export type ApiProvider =
 	| "doubao"
 	| "mistral"
 	| "vscode-lm"
-	| "cline"
+	| "dalvik"
 	| "litellm"
 	| "nebius"
 	| "fireworks"
@@ -31,7 +31,7 @@ export type ApiProvider =
 export interface ApiHandlerOptions {
 	apiModelId?: string
 	apiKey?: string // anthropic
-	clineApiKey?: string
+	dalvikApiKey?: string
 	taskId?: string // Used to identify the task in API requests
 	liteLlmBaseUrl?: string
 	liteLlmModelId?: string

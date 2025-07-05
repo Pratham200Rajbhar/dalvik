@@ -40,13 +40,30 @@ export default defineConfig({
 	build: {
 		outDir: "build",
 		reportCompressedSize: false,
+		minify: "terser",
+		terserOptions: {
+			compress: {
+				drop_console: true,
+				drop_debugger: true,
+			},
+		},
 		rollupOptions: {
 			output: {
 				inlineDynamicImports: true,
 				entryFileNames: `assets/[name].js`,
 				chunkFileNames: `assets/[name].js`,
 				assetFileNames: `assets/[name].[ext]`,
+				manualChunks: undefined,
 			},
+			external: [
+				"styled-components",
+				"firebase",
+				"posthog-js",
+				"mermaid",
+				"framer-motion",
+				"react-virtuoso",
+				"@heroui/react",
+			],
 		},
 		chunkSizeWarningLimit: 100000,
 	},

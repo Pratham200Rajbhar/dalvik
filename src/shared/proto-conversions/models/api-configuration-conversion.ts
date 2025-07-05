@@ -279,7 +279,7 @@ function convertProtoToApiProvider(provider: ProtoApiProvider): ApiProvider {
 		case ProtoApiProvider.VSCODE_LM:
 			return "vscode-lm"
 		case ProtoApiProvider.CLINE:
-			return "cline"
+			return "dalvik"
 		case ProtoApiProvider.LITELLM:
 			return "litellm"
 		case ProtoApiProvider.NEBIUS:
@@ -308,7 +308,7 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 	return {
 		apiModelId: config.apiModelId,
 		apiKey: config.apiKey,
-		clineApiKey: config.clineApiKey,
+		clineApiKey: config.dalvikApiKey,
 		taskId: config.taskId,
 		liteLlmBaseUrl: config.liteLlmBaseUrl,
 		liteLlmModelId: config.liteLlmModelId,
@@ -387,7 +387,7 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 	return {
 		apiModelId: protoConfig.apiModelId,
 		apiKey: protoConfig.apiKey,
-		clineApiKey: protoConfig.clineApiKey,
+		dalvikApiKey: protoConfig.clineApiKey,
 		taskId: protoConfig.taskId,
 		liteLlmBaseUrl: protoConfig.liteLlmBaseUrl,
 		liteLlmModelId: protoConfig.liteLlmModelId,

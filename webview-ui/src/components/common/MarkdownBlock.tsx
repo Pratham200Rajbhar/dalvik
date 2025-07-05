@@ -7,7 +7,15 @@ import { visit } from "unist-util-visit"
 import type { Node } from "unist"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
-import MermaidBlock from "@/components/common/MermaidBlock"
+// Lightweight placeholder for Mermaid - removes heavy dependency
+const MermaidBlock = ({ code }: { code: string }) => (
+	<div className="bg-gray-100 border rounded p-4 my-2">
+		<div className="text-sm text-gray-600 mb-2">Mermaid Diagram (Disabled for Performance)</div>
+		<pre className="text-xs bg-gray-50 p-2 rounded overflow-auto max-h-32">
+			<code>{code}</code>
+		</pre>
+	</div>
+)
 import { WithCopyButton } from "./CopyButton"
 import { StateServiceClient } from "@/services/grpc-client"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/state"

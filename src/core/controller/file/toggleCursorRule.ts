@@ -2,7 +2,7 @@ import type { ToggleCursorRuleRequest } from "../../../shared/proto/file"
 import { ClineRulesToggles } from "../../../shared/proto/file"
 import type { Controller } from "../index"
 import { getWorkspaceState, updateWorkspaceState } from "../../../core/storage/state"
-import { ClineRulesToggles as AppClineRulesToggles } from "@shared/cline-rules"
+import { DalvikRulesToggles as AppDalvikRulesToggles } from "@shared/cline-rules"
 
 /**
  * Toggles a Cursor rule (enable or disable)
@@ -22,12 +22,13 @@ export async function toggleCursorRule(controller: Controller, request: ToggleCu
 	}
 
 	// Update the toggles in workspace state
-	const toggles = ((await getWorkspaceState(controller.context, "localCursorRulesToggles")) as AppClineRulesToggles) || {}
+	const toggles = ((await getWorkspaceState(controller.context, "localCursorRulesToggles")) as AppDalvikRulesToggles) || {}
 	toggles[rulePath] = enabled
 	await updateWorkspaceState(controller.context, "localCursorRulesToggles", toggles)
 
 	// Get the current state to return in the response
-	const cursorToggles = ((await getWorkspaceState(controller.context, "localCursorRulesToggles")) as AppClineRulesToggles) || {}
+	const cursorToggles =
+		((await getWorkspaceState(controller.context, "localCursorRulesToggles")) as AppDalvikRulesToggles) || {}
 
 	return ClineRulesToggles.create({
 		toggles: cursorToggles,

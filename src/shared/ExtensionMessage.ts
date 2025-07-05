@@ -9,7 +9,7 @@ import { HistoryItem } from "./HistoryItem"
 import { McpServer, McpMarketplaceCatalog, McpDownloadResponse, McpViewTab } from "./mcp"
 import { TelemetrySetting } from "./TelemetrySetting"
 import type { BalanceResponse, UsageTransaction, PaymentTransaction } from "../shared/ClineAccount"
-import { ClineRulesToggles } from "./cline-rules"
+import { DalvikRulesToggles } from "./cline-rules"
 import { UserInfo } from "./UserInfo"
 
 // webview will hold state
@@ -85,12 +85,12 @@ export interface ExtensionState {
 	userInfo?: UserInfo
 	version: string
 	distinctId: string
-	globalClineRulesToggles: ClineRulesToggles
-	localClineRulesToggles: ClineRulesToggles
-	localWorkflowToggles: ClineRulesToggles
-	globalWorkflowToggles: ClineRulesToggles
-	localCursorRulesToggles: ClineRulesToggles
-	localWindsurfRulesToggles: ClineRulesToggles
+	globalDalvikRulesToggles: DalvikRulesToggles
+	localDalvikRulesToggles: DalvikRulesToggles
+	localWorkflowToggles: DalvikRulesToggles
+	globalWorkflowToggles: DalvikRulesToggles
+	localCursorRulesToggles: DalvikRulesToggles
+	localWindsurfRulesToggles: DalvikRulesToggles
 	mcpResponsesCollapsed?: boolean
 }
 
